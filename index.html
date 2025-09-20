@@ -38,28 +38,30 @@ html, body {
   background-image: 
     radial-gradient(at 47% 33%, hsl(225, 39%, 30%) 0, transparent 59%), 
     radial-gradient(at 82% 65%, hsl(253, 16%, 7%) 0, transparent 55%);
+  overflow: hidden;
 }
 
 .pantalla {
   display: none;
   width: 100%;
-  min-height: 100vh;
+  height: 100vh;
   padding: 20px;
   transition: opacity 0.5s ease-out;
 }
-.pantalla.activa { display: flex; flex-direction: column; }
+.pantalla.activa { 
+  display: flex; 
+  flex-direction: column; 
+}
 
 .brand-title {
   font-family: 'Times New Roman', Times, serif;
   color: white;
-  font-size: clamp(40px, 3vw, 28px);
+  font-size: clamp(28px, 3vw, 40px);
   font-weight: normal;
   text-align: center;
   width: 100%;
   letter-spacing: 2px;
-  margin-top: 10px;
-  margin-bottom: 5px;
-  padding: 0;
+  margin: 10px 0 5px;
 }
 
 #pantallaAjustes {
@@ -76,13 +78,16 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
   width: 100%;
+  overflow-y: auto;
+  padding-bottom: 20px;
 }
 
 .modal-content {
   padding: 30px;
   text-align: center;
-  width: 90%;
+  width: 100%;
   max-width: 600px;
   box-shadow: var(--shadow-lg);
   border-radius: var(--border-radius-md);
@@ -100,7 +105,7 @@ h1, h3 {
 }
 
 #formAjustes { display: flex; flex-direction: column; gap: 15px; }
-#formAjustes label { font-size: 14px; margin-bottom: -10px; display: block; color: var(--text-medium); }
+#formAjustes label { font-size: 14px; display: block; color: var(--text-medium); }
 #formAjustes input {
   width: 100%;
   padding: 12px;
@@ -152,6 +157,7 @@ h1, h3 {
   z-index: 1000;
   visibility: hidden; opacity: 0;
   transition: opacity 0.3s ease, visibility 0.3s ease;
+  padding: 10px;
 }
 .modal-backdrop.visible { visibility: visible; opacity: 1; }
 .modal-backdrop .modal-content {
@@ -165,6 +171,7 @@ h1, h3 {
   gap: 15px;
   margin-top: 20px;
 }
+
 </style>
 </head>
 <body>
@@ -177,15 +184,13 @@ h1, h3 {
     <div class="zona-centro">
         <div class="modal-content">
             <h3>Gestión de Contraseñas</h3>
-            <form id="formAjustes" onsubmit="return false;">
-                </form>
+            <form id="formAjustes" onsubmit="return false;"></form>
             <div class="modal-actions">
                 <button onclick="guardarContraseñas()" class="usuario-btn">Guardar Cambios</button>
             </div>
         </div>
     </div>
 </section>
-
 
 <div id="modalAlerta" class="modal-backdrop">
     <div class="modal-content custom-modal">
@@ -297,7 +302,6 @@ function mostrarPromptContraseña(mensaje, titulo = "Acceso Requerido") {
 }
 
 // ================= LÓGICA DE AJUSTES =================
-
 function activarPantalla(id){
     document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
     const pantalla = document.getElementById(id);
@@ -310,7 +314,6 @@ function activarPantalla(id){
 function cargarConfiguracionGlobal() {
     return db.ref('configuracion/passwords').once('value').then(snap => {
         if(snap.exists()) {
-            // Aseguramos que solo las claves definidas en DEFAULTPASSWORDS se carguen
             const savedPasswords = snap.val();
             for (const key in appPasswords) {
                 if (savedPasswords[key]) {
