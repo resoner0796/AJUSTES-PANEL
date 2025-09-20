@@ -5,10 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ajustes - Panel Logística</title>
 
-<!-- PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#111827">
-<link rel="apple-touch-icon" href="icon-192.PNG">
+<link rel="apple-touch-icon" href="icon-192x192.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -53,8 +52,8 @@ html, body {
   padding: 20px;
   transition: opacity 0.5s ease-out;
 }
-.pantalla.activa { 
-  display: flex; 
+.pantalla.activa {  
+  display: flex;  
   flex-direction: column; 
 }
 
@@ -68,6 +67,48 @@ html, body {
   letter-spacing: 2px;
   margin: 10px 0 5px;
 }
+/* ================= SPLASH SCREEN ================= */
+#splashScreen {
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-dark);
+}
+.splash-content {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+.splash-logo-container {
+  border-radius: 25px;
+  margin: 20px 0;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+.splash-logo {
+  width: 150px;
+  height: auto;
+  display: block;
+  border-radius: 15px;
+}
+.splash-loading {
+  font-size: 1.2rem;
+  color: var(--text-medium);
+  letter-spacing: 2px;
+}
+.splash-loading .dot {
+  animation: blink-dot 1.4s infinite;
+  opacity: 0;
+}
+.splash-loading .dot:nth-child(2) { animation-delay: 0.2s; }
+.splash-loading .dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink-dot { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
+
 
 #pantallaAjustes {
   align-items: center;
@@ -180,6 +221,16 @@ h1, h3 {
 </style>
 </head>
 <body>
+
+<section id="splashScreen" class="pantalla activa">
+    <div class="splash-content">
+        <p class="brand-title">CORNING</p>
+        <div class="splash-logo-container">
+             <img src="icon-512x512.png" alt="Logo de Ajustes" class="splash-logo">
+        </div>
+        <p class="splash-loading">Cargando<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></p>
+    </div>
+</section>
 
 <section id="pantallaAjustes" class="pantalla">
     <p class="brand-title">CORNING</p>
@@ -390,22 +441,30 @@ async function iniciarAjustes() {
 window.addEventListener('load', ()=>{
     firebase.auth().signInAnonymously()
         .then(() => {
-            iniciarAjustes();
+             // Lógica de Splash Screen
+            setTimeout(() => {
+                const splash = document.getElementById('splashScreen');
+                splash.style.opacity = '0';
+                splash.addEventListener('transitionend', () => {
+                    splash.classList.remove('activa');
+                    iniciarAjustes(); // Inicia la lógica de la app después del splash
+                }, { once: true });
+            }, 2000);
         })
         .catch(e => {
             console.error('Error de autenticación:', e);
             document.body.innerHTML = '<h1 style="text-align: center; color: white; margin-top: 50px;">Error de Conexión</h1>';
         });
+    
+    // REGISTRO DEL SERVICE WORKER PARA PWA
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("sw.js")
+          .then(reg => console.log("✅ Service Worker registrado:", reg.scope))
+          .catch(err => console.error("❌ Error registrando Service Worker:", err));
+      });
+    }
 });
-
-// ================= PWA Service Worker =================
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js")
-      .then(reg => console.log("✅ Service Worker registrado:", reg.scope))
-      .catch(err => console.error("❌ Error registrando Service Worker:", err));
-  });
-}
 </script>
 </body>
 </html>
