@@ -2,8 +2,8 @@ const CACHE_NAME = "ajustes-v1";
 const ASSETS = [
   "index.html",
   "manifest.json",
-  "icon-192.png",
-  "icon-512.png"
+  "icon-192.PNG",
+  "icon-512.PNG"
 ];
 
 // Instalar y cachear recursos iniciales
