@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ajustes - Panel Logística</title>
+<meta name="theme-color" content="#111827">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+<style>
+:root {
+  --bg-dark: #111827;
+  --bg-medium: #1F2937;
+  --text-light: #F9FAFB;
+  --text-medium: #9CA3AF;
+  --accent-blue: #3B82F6;
+  --accent-red: #EF4444;
+  --font-family: 'Poppins', Arial, Helvetica, sans-serif;
+  --border-radius-md: 16px;
+  --border-radius-sm: 10px;
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: var(--font-family);
+  color: var(--text-light);
+  background-color: var(--bg-dark);
+  background-image: 
+    radial-gradient(at 47% 33%, hsl(225, 39%, 30%) 0, transparent 59%), 
+    radial-gradient(at 82% 65%, hsl(253, 16%, 7%) 0, transparent 55%);
+}
+
+.pantalla {
+  display: none;
+  width: 100%;
+  min-height: 100vh;
+  padding: 20px;
+  transition: opacity 0.5s ease-out;
+}
+.pantalla.activa { display: flex; flex-direction: column; }
+
+.brand-title {
+  font-family: 'Times New Roman', Times, serif;
+  color: white;
+  font-size: clamp(40px, 3vw, 28px);
+  font-weight: normal;
+  text-align: center;
+  width: 100%;
+  letter-spacing: 2px;
+  margin-top: 10px;
+  margin-bottom: 5px;
+  padding: 0;
+}
+
+#pantallaAjustes {
+  align-items: center;
+  justify-content: flex-start;
+  gap: 24px;
+}
+.header {
+  text-align: center;
+  width: 100%;
+}
+.zona-centro {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+.modal-content {
+  padding: 30px;
+  text-align: center;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: var(--shadow-lg);
+  border-radius: var(--border-radius-md);
+  background: rgba(31, 41, 55, 0.7);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  text-align: left;
+  max-height: 85vh;  
+  overflow-y: auto;
+}
+
+h1, h3 {
+    margin-top: 0;
+}
+
+#formAjustes { display: flex; flex-direction: column; gap: 15px; }
+#formAjustes label { font-size: 14px; margin-bottom: -10px; display: block; color: var(--text-medium); }
+#formAjustes input {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--border-radius-sm);
+  color: var(--text-light);
+  font-size: 16px;
+  font-family: var(--font-family);
+  background: rgba(17, 24, 39, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+#formAjustes input:focus {
+    outline: none;
+    border-color: var(--accent-blue);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.5);
+}
+
+.usuario-btn {
+  background: rgba(59, 130, 246, 0.25);
+  backdrop-filter: blur(10px);
+  color: var(--text-light);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 14px 28px;
+  border-radius: var(--border-radius-sm);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s ease;
+}
+.usuario-btn:hover {
+  background: rgba(59, 130, 246, 0.4);
+  transform: translateY(-2px);
+}
+.btn-rojo { background: rgba(239, 68, 68, 0.25); }
+.btn-rojo:hover { background: rgba(239, 68, 68, 0.4); }
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.modal-backdrop {
+  position: fixed; top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(5px);
+  display: flex; justify-content: center; align-items: center;
+  z-index: 1000;
+  visibility: hidden; opacity: 0;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+.modal-backdrop.visible { visibility: visible; opacity: 1; }
+.modal-backdrop .modal-content {
+  transform: scale(0.9);
+  transition: transform 0.3s ease;
+}
+.modal-backdrop.visible .modal-content { transform: scale(1); }
+.custom-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 15px;
+  margin-top: 20px;
+}
+</style>
+</head>
+<body>
+
+<section id="pantallaAjustes" class="pantalla">
+    <p class="brand-title">CORNING</p>
+    <header class="header">
+        <h1>AJUSTES</h1>
+    </header>
+    <div class="zona-centro">
+        <div class="modal-content">
+            <h3>Gestión de Contraseñas</h3>
+            <form id="formAjustes" onsubmit="return false;">
+                </form>
+            <div class="modal-actions">
+                <button onclick="guardarContraseñas()" class="usuario-btn">Guardar Cambios</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<div id="modalAlerta" class="modal-backdrop">
+    <div class="modal-content custom-modal">
+        <h3 id="alertaTitulo">Notificación</h3>
+        <p id="alertaMensaje"></p>
+        <div class="modal-actions" style="justify-content: center;">
+            <button id="alertaBotonCerrar" class="usuario-btn">Aceptar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalConfirmacion" class="modal-backdrop">
+    <div class="modal-content custom-modal">
+        <h3 id="confirmacionTitulo">Confirmación</h3>
+        <p id="confirmacionMensaje"></p>
+        <div class="custom-modal-actions">
+            <button id="confirmacionBotonCancelar" class="usuario-btn btn-rojo">Cancelar</button>
+            <button id="confirmacionBotonOk" class="usuario-btn">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<div id="modalContraseña" class="modal-backdrop">
+    <div class="modal-content custom-modal">
+        <h3 id="contraseñaTitulo">Acceso Requerido</h3>
+        <p id="contraseñaMensaje"></p>
+        <input type="password" id="contraseñaInput" placeholder="Introduce la contraseña...">
+        <div class="custom-modal-actions">
+            <button id="contraseñaBotonCancelar" class="usuario-btn btn-rojo">Cancelar</button>
+            <button id="contraseñaBotonOk" class="usuario-btn">Aceptar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ================= CONFIG Y ESTADO =================
+const DEFAULTPASSWORDS = {
+    'LOGÍSTICA': 'LOGRAM', 'MULTIPORT': 'MP25', 'BEDROCK': 'BR25', 'DROPS': 'DROP25', 'SUPERVISOR': 'SUP25',
+    'CALIDAD_MULTIPORT': 'AQLMP', 'CALIDAD_DROPS': 'AQLDP', 'CALIDAD_BEDROCK': 'AQLBR', 'REPORTES': 'REPO25', 'DASHBOARD': 'DASH25'
+};
+let appPasswords = { ...DEFAULTPASSWORDS };
+
+// ================= FIREBASE =================
+const firebaseConfig = {
+    apiKey: "AIzaSyCPTEu73s2rVIm2VsdTk59kVIOyi1jeyu8",
+    authDomain: "panel-logistica.firebaseapp.com",
+    databaseURL: "https://panel-logistica-default-rtdb.firebaseio.com",
+    projectId: "panel-logistica",
+    storageBucket: "panel-logistica.appspot.com",
+    messagingSenderId: "38365879945",
+    appId: "1:38365879945:web:e2f3590fe77f013dba3058"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ================= MODALES PERSONALIZADOS =================
+function mostrarAlerta(mensaje, titulo = "Notificación") {
+    const modal = document.getElementById('modalAlerta');
+    document.getElementById('alertaTitulo').textContent = titulo;
+    document.getElementById('alertaMensaje').textContent = mensaje;
+    modal.classList.add('visible');
+    return new Promise(resolve => {
+        document.getElementById('alertaBotonCerrar').onclick = () => {
+            modal.classList.remove('visible');
+            resolve();
+        };
+    });
+}
+
+function mostrarConfirmacion(mensaje, titulo = "Confirmación") {
+    const modal = document.getElementById('modalConfirmacion');
+    document.getElementById('confirmacionTitulo').textContent = titulo;
+    document.getElementById('confirmacionMensaje').textContent = mensaje;
+    modal.classList.add('visible');
+    return new Promise(resolve => {
+        document.getElementById('confirmacionBotonOk').onclick = () => {
+            modal.classList.remove('visible');
+            resolve(true);
+        };
+        document.getElementById('confirmacionBotonCancelar').onclick = () => {
+            modal.classList.remove('visible');
+            resolve(false);
+        };
+    });
+}
+
+function mostrarPromptContraseña(mensaje, titulo = "Acceso Requerido") {
+    const modal = document.getElementById('modalContraseña');
+    document.getElementById('contraseñaTitulo').textContent = titulo;
+    document.getElementById('contraseñaMensaje').textContent = mensaje;
+    const input = document.getElementById('contraseñaInput');
+    input.value = '';
+    modal.classList.add('visible');
+    input.focus();
+
+    return new Promise(resolve => {
+        const resolver = (value) => {
+            modal.classList.remove('visible');
+            document.getElementById('contraseñaBotonOk').onclick = null;
+            document.getElementById('contraseñaBotonCancelar').onclick = null;
+            input.onkeypress = null;
+            resolve(value);
+        };
+        
+        document.getElementById('contraseñaBotonOk').onclick = () => resolver(input.value);
+        document.getElementById('contraseñaBotonCancelar').onclick = () => resolver(null);
+        input.onkeypress = (e) => { if (e.key === 'Enter') resolver(input.value); };
+    });
+}
+
+// ================= LÓGICA DE AJUSTES =================
+
+function activarPantalla(id){
+    document.querySelectorAll('.pantalla').forEach(p => p.classList.remove('activa'));
+    const pantalla = document.getElementById(id);
+    if(pantalla) {
+        pantalla.style.display = 'flex';
+        pantalla.classList.add('activa');
+    }
+}
+
+function cargarConfiguracionGlobal() {
+    return db.ref('configuracion/passwords').once('value').then(snap => {
+        if(snap.exists()) {
+            // Aseguramos que solo las claves definidas en DEFAULTPASSWORDS se carguen
+            const savedPasswords = snap.val();
+            for (const key in appPasswords) {
+                if (savedPasswords[key]) {
+                    appPasswords[key] = savedPasswords[key];
+                }
+            }
+        }
+    });
+}
+
+function mostrarPantallaAjustes() {
+    activarPantalla('pantallaAjustes');
+    const form = document.getElementById('formAjustes');
+    form.innerHTML = '';
+    let inputsHtml = '';
+    Object.keys(appPasswords).sort().forEach(key => {
+        const label = key.replace(/_/g, ' ');
+        inputsHtml += `
+            <div>
+                <label for="pass-${key}">${label}:</label>
+                <input type="text" id="pass-${key}" value="${appPasswords[key]}">
+            </div>`;
+    });
+    form.innerHTML = inputsHtml;
+}
+
+async function guardarContraseñas() {
+    const nuevas = {};
+    let changed = false;
+    for (const key in appPasswords) {
+        const inputVal = document.getElementById(`pass-${key}`).value.trim();
+        if (inputVal) {
+            nuevas[key] = inputVal;
+            if(inputVal !== appPasswords[key]) changed = true;
+        } else {
+            mostrarAlerta(`El campo para ${key} no puede estar vacío.`);
+            return;
+        }
+    }
+
+    if(changed) {
+        if (await mostrarConfirmacion("¿Estás seguro de que quieres guardar las nuevas contraseñas?")) {
+            db.ref('configuracion/passwords').set(nuevas)
+            .then(() => {
+                appPasswords = nuevas;
+                mostrarAlerta("✅ ¡Contraseñas actualizadas con éxito!");
+            })
+            .catch(err => mostrarAlerta("Error al guardar: " + err.message));
+        }
+    } else {
+        mostrarAlerta("No se detectaron cambios.");
+    }
+}
+
+async function iniciarAjustes() {
+    await cargarConfiguracionGlobal();
+    const password = await mostrarPromptContraseña('Introduce la contraseña de SUPERVISOR para continuar');
+    if (password === appPasswords.SUPERVISOR) {
+        mostrarPantallaAjustes();
+    } else if (password !== null) {
+        await mostrarAlerta('Contraseña incorrecta. Acceso denegado.');
+        document.body.innerHTML = '<h1 style="text-align: center; color: white; margin-top: 50px;">Acceso Denegado</h1>';
+    } else {
+        document.body.innerHTML = '';
+    }
+}
+
+// ================= ARRANQUE =================
+window.addEventListener('load', ()=>{
+    firebase.auth().signInAnonymously()
+        .then(() => {
+            iniciarAjustes();
+        })
+        .catch(e => {
+            console.error('Error de autenticación:', e);
+            document.body.innerHTML = '<h1 style="text-align: center; color: white; margin-top: 50px;">Error de Conexión</h1>';
+        });
+});
+</script>
+</body>
+</html>
