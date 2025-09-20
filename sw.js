@@ -9,7 +9,7 @@ const urlsToCache = [
   'https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js',
   'https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js'
   'icon-192x192.PNG'  
-  'icon-192x192.PNG'  
+  'icon-512x512.PNG'  
 ];
 
 // Evento 'install': se dispara cuando el Service Worker se instala
