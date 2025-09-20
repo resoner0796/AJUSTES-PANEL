@@ -1,21 +1,26 @@
 {
-  "name": "Ajustes - Panel Logística",
+  "name": "Ajustes Panel",
   "short_name": "Ajustes",
+  "description": "Panel de administración para la configuración del sistema de logística.",
   "start_url": "index.html",
   "display": "standalone",
   "background_color": "#111827",
-  "theme_color": "#111827",
-  "orientation": "portrait",
+  "theme_color": "#1F2937",
+  "orientation": "portrait-primary",
   "icons": [
+
     {
-      "src": "icon-192.PNG",
+      "src": "icon-192x192.PNG",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
+
     {
-      "src": "icon-512.PNG",
+      "src": "icon-512x512.PNG",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
